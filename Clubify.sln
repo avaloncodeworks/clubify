@@ -5,6 +5,8 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clubify", "Clubify.csproj", "{1666865E-CD11-4802-85B4-911455DEDE21}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clubify.Tests", "..\Clubify.Tests\Clubify.Tests.csproj", "{02A3324E-B48C-42D7-9C02-9E4561663469}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{1666865E-CD11-4802-85B4-911455DEDE21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1666865E-CD11-4802-85B4-911455DEDE21}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1666865E-CD11-4802-85B4-911455DEDE21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02A3324E-B48C-42D7-9C02-9E4561663469}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02A3324E-B48C-42D7-9C02-9E4561663469}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02A3324E-B48C-42D7-9C02-9E4561663469}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02A3324E-B48C-42D7-9C02-9E4561663469}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

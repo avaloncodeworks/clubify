@@ -7,5 +7,6 @@ namespace Clubify.Data
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<Club> Clubs { get; set; }
+        public DbSet<Membership> Memberships { get; set; }
     }
 }

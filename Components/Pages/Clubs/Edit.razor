@@ -18,6 +18,21 @@
     </ol>
 </nav>
 
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 @if (club == null)
 {
     <p><em>Loading...</em></p>
@@ -52,21 +67,37 @@ else
     public int id { get; set; }
 
     private Club club;
+    private string successMessage;
+    private string errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        club = await DbContext.Clubs.FirstOrDefaultAsync(c => c.Id == id && c.IsActive);
-
-        if (club == null)
+        try
         {
-            // Redirect or show not found
-            Navigation.NavigateTo("/clubs");
+            club = await DbContext.Clubs.FirstOrDefaultAsync(c => c.Id == id && c.IsActive);
+            if (club == null)
+            {
+                Navigation.NavigateTo("/clubs");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred while loading the club: {ex.Message}";
         }
     }
 
     private async Task HandleValidSubmit()
     {
-        await DbContext.SaveChangesAsync();
-        Navigation.NavigateTo("/clubs");
+        try
+        {
+            await DbContext.SaveChangesAsync();
+            successMessage = "Club updated successfully!";
+            await Task.Delay(1000);
+            Navigation.NavigateTo("/clubs");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred while updating the club: {ex.Message}";
+        }
     }
 }
