@@ -14,5 +14,7 @@ namespace Clubify.Data.Models
         public string Description { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        public ICollection<Event> Events { get; set; }
     }
 }

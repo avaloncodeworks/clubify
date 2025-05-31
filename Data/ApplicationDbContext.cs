@@ -8,5 +8,6 @@ namespace Clubify.Data
     {
         public DbSet<Club> Clubs { get; set; }
         public DbSet<Membership> Memberships { get; set; }
+        public DbSet<Event> Events { get; set; }
     }
 }
