@@ -1,0 +1,64 @@
+﻿@page "/clubs/delete/{id:int}"
+
+@using Clubify.Data.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+
+@inject Clubify.Data.ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+@attribute [Authorize(Roles = "Admin")]
+
+<h3 class="mb-4">Delete Club</h3>
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/clubs">Clubs</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Delete</li>
+    </ol>
+</nav>
+
+@if (club == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="card border-danger">
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <strong>Are you sure you want to delete this club?</strong>
+                <p><strong>Name:</strong> @club.Name</p>
+                <p><strong>Description:</strong> @club.Description</p>
+            </div>
+
+            <button class="btn btn-danger me-2" @onclick="HandleDelete">Delete</button>
+            <a class="btn btn-secondary" href="/clubs">Cancel</a>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private Club club;
+
+    protected override async Task OnInitializedAsync()
+    {
+        club = await DbContext.Clubs.FirstOrDefaultAsync(c => c.Id == id && c.IsActive);
+
+        if (club == null)
+        {
+            Navigation.NavigateTo("/clubs");
+        }
+    }
+
+    private async Task HandleDelete()
+    {
+        // Soft delete: set IsActive to false
+        club.IsActive = false;
+        await DbContext.SaveChangesAsync();
+        Navigation.NavigateTo("/clubs");
+    }
+}

@@ -1,0 +1,72 @@
+﻿@page "/clubs/edit/{id:int}"
+
+@using Clubify.Data.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+
+@inject Clubify.Data.ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+@attribute [Authorize(Roles = "Admin")]
+
+<h3 class="mb-4">Edit Club</h3>
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/clubs">Clubs</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+    </ol>
+</nav>
+
+@if (club == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <EditForm Model="@club" OnValidSubmit="@HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <InputText id="name" class="form-control" @bind-Value="club.Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <InputTextArea id="description" class="form-control" @bind-Value="club.Description" />
+                </div>
+
+                <button type="submit" class="btn btn-primary me-2">Save Changes</button>
+                <a class="btn btn-secondary" href="/clubs">Cancel</a>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private Club club;
+
+    protected override async Task OnInitializedAsync()
+    {
+        club = await DbContext.Clubs.FirstOrDefaultAsync(c => c.Id == id && c.IsActive);
+
+        if (club == null)
+        {
+            // Redirect or show not found
+            Navigation.NavigateTo("/clubs");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await DbContext.SaveChangesAsync();
+        Navigation.NavigateTo("/clubs");
+    }
+}

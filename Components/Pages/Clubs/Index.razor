@@ -1,0 +1,62 @@
+﻿@page "/clubs"
+
+@using Clubify.Data.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+
+@inject Clubify.Data.ApplicationDbContext DbContext
+
+@attribute [Authorize(Roles = "Admin")]
+
+<h3 class="mb-4">Clubs Management</h3>
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Clubs</li>
+    </ol>
+</nav>
+
+@if (clubs == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-striped table-hover table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var club in clubs)
+            {
+                <tr>
+                    <td>@club.Name</td>
+                    <td>@club.Description</td>
+                    <td>
+                        <a class="btn btn-sm btn-info me-1" href="/clubs/details/@club.Id">Details</a>
+                        <a class="btn btn-sm btn-secondary me-1" href="/clubs/edit/@club.Id">Edit</a>
+                        <a class="btn btn-sm btn-danger" href="/clubs/delete/@club.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <p>
+        <a class="btn btn-primary btn-sm" href="/clubs/create">Create New</a>
+    </p>
+}
+
+@code {
+    private List<Club> clubs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clubs = await DbContext.Clubs
+            .Where(c => c.IsActive)
+            .ToListAsync();
+    }
+}
