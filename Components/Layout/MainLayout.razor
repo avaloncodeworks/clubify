@@ -1,22 +1,15 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager NavigationManager
 
 <CascadingAuthenticationState>
-    <div class="navbar">
-        <AuthorizeView>
-            <Authorized>
-                <span>Hello, @context.User.Identity.Name!</span> |
-                <a href="/account/manage">Profile</a> |
-                <a href="/logout">Logout</a>
-            </Authorized>
-            <NotAuthorized>
-                <a href="/account/login">Login</a> |
-                <a href="/account/register">Register</a>
-            </NotAuthorized>
-        </AuthorizeView>
+    @if (!NavigationManager.Uri.Contains("/account/login", StringComparison.OrdinalIgnoreCase))
+    {
+        <NavMenu />
+    }
+    <div class="container mt-5 pt-3">
+        @Body
     </div>
-
-    @Body
 </CascadingAuthenticationState>
 
 <div id="blazor-error-ui" data-nosnippet>

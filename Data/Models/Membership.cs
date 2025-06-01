@@ -21,5 +21,9 @@ namespace Clubify.Data.Models
         public Club Club { get; set; }
 
         public DateTime JoinedOn { get; set; } = DateTime.UtcNow;
+
+        public DateTime ExpiryDate { get; set; }
+
+        public bool IsActive { get; set; } = true;
     }
 }

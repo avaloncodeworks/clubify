@@ -1,0 +1,137 @@
+﻿@page "/events/edit/{eventId:int}"
+
+@using Clubify.Data.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+
+@inject Clubify.Data.ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+@attribute [Authorize(Roles = "Admin")]
+
+<h3 class="mb-4">Edit Event</h3>
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/events">Events</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+    </ol>
+</nav>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (eventToEdit == null || clubs == null)
+{
+    <p><em>Loading event details...</em></p>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <EditForm Model="@eventToEdit" OnValidSubmit="@HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <InputText id="title" class="form-control" @bind-Value="eventToEdit.Title" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <InputTextArea id="description" class="form-control" @bind-Value="eventToEdit.Description" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="startDate" class="form-label">Start Date</label>
+                    <InputDate id="startDate" class="form-control" @bind-Value="eventToEdit.StartDate" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="endDate" class="form-label">End Date</label>
+                    <InputDate id="endDate" class="form-control" @bind-Value="eventToEdit.EndDate" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="location" class="form-label">Location</label>
+                    <InputText id="location" class="form-control" @bind-Value="eventToEdit.Location" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="clubId" class="form-label">Club</label>
+                    <InputSelect id="clubId" class="form-select" @bind-Value="eventToEdit.ClubId">
+                        @foreach (var club in clubs)
+                        {
+                            <option value="@club.Id">@club.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <button type="submit" class="btn btn-primary me-2">Save Changes</button>
+                <a class="btn btn-secondary" href="/events">Cancel</a>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int eventId { get; set; }
+
+    private Event eventToEdit;
+    private List<Club> clubs;
+    private string successMessage;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            eventToEdit = await DbContext.Events.FindAsync(eventId);
+            if (eventToEdit == null)
+            {
+                errorMessage = "Event not found.";
+                return;
+            }
+
+            clubs = await DbContext.Clubs
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred while loading event details: {ex.Message}";
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            DbContext.Events.Update(eventToEdit);
+            await DbContext.SaveChangesAsync();
+            successMessage = "Event updated successfully!";
+            await Task.Delay(1000);
+            Navigation.NavigateTo("/events");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred while updating the event: {ex.Message}";
+        }
+    }
+}

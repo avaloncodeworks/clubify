@@ -7,7 +7,7 @@
 @inject Clubify.Data.ApplicationDbContext DbContext
 @inject NavigationManager Navigation
 
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin")]
 
 <h3 class="mb-4">Events</h3>
 

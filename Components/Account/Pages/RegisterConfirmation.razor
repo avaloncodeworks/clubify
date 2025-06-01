@@ -4,11 +4,13 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Clubify.Data
+@using Clubify.Services
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IEmailSender<ApplicationUser> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IEmailService EmailService
 
 <PageTitle>Register confirmation</PageTitle>
 
@@ -46,6 +48,7 @@ else
         if (Email is null)
         {
             RedirectManager.RedirectTo("");
+            return;
         }
 
         var user = await UserManager.FindByEmailAsync(Email);
@@ -63,6 +66,13 @@ else
             emailConfirmationLink = NavigationManager.GetUriWithQueryParameters(
                 NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
                 new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+
+            // Send Welcome Email
+            await EmailService.SendEmailAsync(
+                toEmail: user.Email,
+                subject: "Welcome to Clubify!",
+                body: EmailTemplates.WelcomeEmail(user.UserName)
+            );
         }
     }
 }
