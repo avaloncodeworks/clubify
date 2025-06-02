@@ -10,7 +10,14 @@
 
         if (user.Identity is { IsAuthenticated: true })
         {
-            NavigationManager.NavigateTo("/dashboard", forceLoad: true);
+            if (user.IsInRole("Admin"))
+            {
+                NavigationManager.NavigateTo("/admin/dashboard", forceLoad: true);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/userhome", forceLoad: true);
+            }
         }
         else
         {
