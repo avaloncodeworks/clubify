@@ -1,21 +1,16 @@
 ﻿@page "/admin/dashboard"
+@attribute [Authorize(Roles = "Admin")]
 
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
-@using Clubify.Data
-@using Clubify.Data.Models
-@using Microsoft.EntityFrameworkCore
-
 @inject ApplicationDbContext DbContext
 @inject AuthenticationStateProvider AuthenticationStateProvider
-
-@attribute [Authorize(Roles = "Admin")]
 
 <PageTitle>Club Dashboard</PageTitle>
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
         @errorMessage
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
@@ -23,7 +18,7 @@
 
 @if (isLoading)
 {
-    <div class="text-center">
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
@@ -31,76 +26,105 @@
 }
 else
 {
-    <div class="dashboard-card mb-4">
-        <h5>Welcome to @clubName Dashboard</h5>
-    </div>
+    <div class="container-fluid py-4">
+        <!-- Welcome Message -->
+        <div class="mb-4">
+            <h2 class="fw-bold text-primary">Welcome, @clubName</h2>
+        </div>
 
-    <div class="row">
-        <div class="col-md-4 mb-3">
-            <div class="dashboard-card">
-                <h5>Total Events</h5>
-                <p>@totalEvents</p>
+        <!-- Top Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="dashboard-card">
+                    <h6 class="text-muted mb-2">Total Events</h6>
+                    <h3 class="fw-bold text-dark">@totalEvents</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card">
+                    <h6 class="text-muted mb-2">Total Members</h6>
+                    <h3 class="fw-bold text-dark">@totalMembers</h3>
+                </div>
+            </div>
+            <!-- Add more cards here if needed -->
+        </div>
+
+        <!-- Graphs & Charts (Placeholder) -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="dashboard-card">
+                    <h6 class="text-muted mb-3">Project Overview</h6>
+                    <div class="chart-placeholder">
+                        [Chart Placeholder]
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="dashboard-card">
+                    <h6 class="text-muted mb-3">Monthly Target</h6>
+                    <div class="chart-placeholder">
+                        [Pie Chart Placeholder]
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="dashboard-card">
-                <h5>Total Members</h5>
-                <p>@totalMembers</p>
+
+        <!-- Recent Data -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <h6 class="text-muted mb-3">Recent Events</h6>
+                    @if (recentEvents.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var evt in recentEvents)
+                            {
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>@evt.Title</span>
+                                    <span class="badge bg-secondary">@evt.StartDate.ToString("dd MMM yyyy")</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No recent events found.</p>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <h6 class="text-muted mb-3">Recent Memberships</h6>
+                    @if (recentMemberships.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var member in recentMemberships)
+                            {
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>@member.User?.Email ?? "N/A"</span>
+                                    <span class="badge bg-info">@member.JoinedOn.ToString("dd MMM yyyy")</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No recent memberships found.</p>
+                    }
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="table-container mt-4">
-        <h5>Recent Events</h5>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Start Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var e in recentEvents)
-                {
-                    <tr>
-                        <td>@e.Title</td>
-                        <td>@e.StartDate.ToShortDateString()</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <div class="table-container mt-4">
-        <h5>Recent Memberships</h5>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Joined On</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var m in recentMemberships)
-                {
-                    <tr>
-                        <td>@m.User.Email</td>
-                        <td>@m.JoinedOn.ToShortDateString()</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
     </div>
 }
 
 @code {
+    private string? errorMessage;
+    private bool isLoading = true;
     private string clubName;
     private int totalEvents;
     private int totalMembers;
     private List<Event> recentEvents = new();
     private List<Membership> recentMemberships = new();
-    private string errorMessage;
-    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -110,6 +134,7 @@ else
             var user = authState.User;
 
             var clubIdClaim = user.FindFirst("ClubId")?.Value;
+
             if (!int.TryParse(clubIdClaim, out var clubId))
             {
                 errorMessage = "Club ID not found. Please contact support.";

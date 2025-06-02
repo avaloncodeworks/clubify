@@ -1,0 +1,50 @@
+﻿<nav class="sidebar @(isSidebarCollapsed ? "collapsed" : "") @(isSidebarOpen ? "open" : "")">
+    <!-- Sidebar header -->
+    <div class="sidebar-header d-flex align-items-center justify-content-between">
+        @if (currentWidth >= 992)
+        {
+            @if (isSidebarCollapsed)
+            {
+                <img src="images/clubify_logo_big_C.png" alt="Clubify Logo Small" class="sidebar-logo" />
+            }
+            else
+            {
+                <img src="images/clubify_logo_full_white.png" alt="Clubify Logo" class="sidebar-logo" />
+            }
+        }
+        else
+        {
+            <img src="images/clubify_logo_full_white.png" alt="Clubify Logo" class="sidebar-logo" />
+        }
+
+        <button class="close-btn d-lg-none" @onclick="CloseSidebar">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar links -->
+    <ul class="nav-list">
+        <li><NavLink class="nav-link" href="/admin/dashboard"><i class="bi bi-house"></i> <span>Dashboard</span></NavLink></li>
+        <li><NavLink class="nav-link" href="/admin/events"><i class="bi bi-calendar"></i> <span>Events</span></NavLink></li>
+        <li><NavLink class="nav-link" href="/admin/members"><i class="bi bi-people"></i> <span>Members</span></NavLink></li>
+    </ul>
+</nav>
+
+@code {
+    [Parameter]
+    public bool isSidebarCollapsed { get; set; }
+
+    [Parameter]
+    public bool isSidebarOpen { get; set; }
+
+    [Parameter]
+    public double currentWidth { get; set; }
+
+    [Parameter]
+    public EventCallback OnCloseSidebar { get; set; }
+
+    private async Task CloseSidebar()
+    {
+        await OnCloseSidebar.InvokeAsync();
+    }
+}

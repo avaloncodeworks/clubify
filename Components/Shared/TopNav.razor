@@ -1,0 +1,30 @@
+﻿<header class="topnav">
+    <div class="hamburger" @onclick="ToggleSidebar">
+        <i class="bi bi-list"></i>
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="Search..." />
+    </div>
+
+    <div class="topnav-right">
+        <div class="notification">
+            <i class="bi bi-bell"></i>
+            <span class="badge">3</span>
+        </div>
+        <div class="user-profile">
+            <img src="/images/avatar.jpg" alt="User Avatar" class="avatar" />
+            <span class="username">Admin</span>
+        </div>
+    </div>
+</header>
+
+@code {
+    [Parameter]
+    public EventCallback OnToggleSidebar { get; set; }
+
+    private async Task ToggleSidebar()
+    {
+        await OnToggleSidebar.InvokeAsync();
+    }
+}
