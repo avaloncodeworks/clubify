@@ -6,24 +6,13 @@
 <CascadingAuthenticationState>
     @if (!NavigationManager.Uri.Contains("/account/login", StringComparison.OrdinalIgnoreCase))
     {
-        <div class="app-wrapper">
-            <NavMenu isSidebarCollapsed="@isSidebarCollapsed"
-                     isSidebarOpen="@isSidebarOpen"
-                     currentWidth="@currentWidth"
-                     OnCloseSidebar="@CloseSidebar" />
-
-            <div class="main-content @(isSidebarCollapsed ? "collapsed" : "")">
-                <TopNav OnToggleSidebar="@ToggleSidebar" />
-                <div class="page-content">
-                    @Body
-                </div>
+        <Sidebar IsCollapsed="@isSidebarCollapsed" IsCollapsedChanged="@OnSidebarCollapsedChanged" />
+        <div class="main-area @(isSidebarCollapsed ? "sidebar-collapsed" : "")">
+            <TopNav OnToggleSidebar="ToggleSidebar" />
+            <div class="page-content">
+                @Body
             </div>
         </div>
-
-        @if (isSidebarOpen && currentWidth < 992)
-        {
-            <div class="sidebar-overlay" @onclick="CloseSidebar"></div>
-        }
     }
     else
     {
@@ -39,43 +28,14 @@
 
 @code {
     private bool isSidebarCollapsed = false;
-    private bool isSidebarOpen = false;
-    private double currentWidth;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private void OnSidebarCollapsedChanged(bool collapsed)
     {
-        if (firstRender)
-        {
-            await JS.InvokeVoidAsync("resizeHelper.registerResizeHandler",
-                DotNetObjectReference.Create(this));
-        }
-    }
-
-    [JSInvokable]
-    public void OnResize(double width)
-    {
-        currentWidth = width;
-        if (width >= 992)
-        {
-            isSidebarOpen = false; // Close overlay mode on large screen
-        }
-        StateHasChanged();
+        isSidebarCollapsed = collapsed;
     }
 
     private void ToggleSidebar()
     {
-        if (currentWidth < 992)
-        {
-            isSidebarOpen = !isSidebarOpen;
-        }
-        else
-        {
-            isSidebarCollapsed = !isSidebarCollapsed;
-        }
-    }
-
-    private void CloseSidebar()
-    {
-        isSidebarOpen = false;
+        isSidebarCollapsed = !isSidebarCollapsed;
     }
 }
