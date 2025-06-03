@@ -27,53 +27,34 @@
 else
 {
     <div class="container-fluid py-4">
-        <!-- Welcome Message -->
-        <div class="mb-4">
-            <h2 class="fw-bold text-primary">Welcome, @clubName</h2>
+        <!-- Welcome Card -->
+        <div class="welcome-card mb-4">
+            <h2 class="fw-bold mb-2">Welcome, @userName!</h2>
+            <p class="mb-0 text-muted">Here’s what’s happening in your club today.</p>
         </div>
 
         <!-- Top Stats -->
         <div class="row g-4 mb-4">
             <div class="col-md-3">
                 <div class="dashboard-card">
-                    <h6 class="text-muted mb-2">Total Events</h6>
-                    <h3 class="fw-bold text-dark">@totalEvents</h3>
+                    <h6>Total Events</h6>
+                    <h3>@totalEvents</h3>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="dashboard-card">
-                    <h6 class="text-muted mb-2">Total Members</h6>
-                    <h3 class="fw-bold text-dark">@totalMembers</h3>
+                    <h6>Total Members</h6>
+                    <h3>@totalMembers</h3>
                 </div>
             </div>
             <!-- Add more cards here if needed -->
-        </div>
-
-        <!-- Graphs & Charts (Placeholder) -->
-        <div class="row g-4 mb-4">
-            <div class="col-lg-8">
-                <div class="dashboard-card">
-                    <h6 class="text-muted mb-3">Project Overview</h6>
-                    <div class="chart-placeholder">
-                        [Chart Placeholder]
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="dashboard-card">
-                    <h6 class="text-muted mb-3">Monthly Target</h6>
-                    <div class="chart-placeholder">
-                        [Pie Chart Placeholder]
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Recent Data -->
         <div class="row g-4 mb-4">
             <div class="col-lg-6">
                 <div class="dashboard-card">
-                    <h6 class="text-muted mb-3">Recent Events</h6>
+                    <h6>Recent Events</h6>
                     @if (recentEvents.Any())
                     {
                         <ul class="list-group list-group-flush">
@@ -94,7 +75,7 @@ else
             </div>
             <div class="col-lg-6">
                 <div class="dashboard-card">
-                    <h6 class="text-muted mb-3">Recent Memberships</h6>
+                    <h6>Recent Memberships</h6>
                     @if (recentMemberships.Any())
                     {
                         <ul class="list-group list-group-flush">
@@ -125,6 +106,7 @@ else
     private int totalMembers;
     private List<Event> recentEvents = new();
     private List<Membership> recentMemberships = new();
+    private string userName = "Admin";
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,6 +114,8 @@ else
         {
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
+
+            userName = user.Identity?.Name ?? "Admin";
 
             var clubIdClaim = user.FindFirst("ClubId")?.Value;
 

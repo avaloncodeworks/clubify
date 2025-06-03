@@ -25,5 +25,8 @@ namespace Clubify.Data.Models
         public DateTime ExpiryDate { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        public bool IsApproved { get; set; } = false;
+        public bool IsRejected { get; set; } = false;
     }
 }
