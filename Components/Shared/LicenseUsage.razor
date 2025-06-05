@@ -1,0 +1,123 @@
+﻿@using Clubify.Data.Models
+@using Clubify.Services
+@inject IClubsService ClubsService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (isLoading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else
+{
+    <div class="license-usage">
+        <h5>License Tier: @licenseUsage.TierName</h5>
+        <div class="mb-2">
+            Members: @licenseUsage.CurrentMembers / @licenseUsage.MemberCap
+        </div>
+        <div class="progress" style="height: 20px;">
+            <div class="progress-bar @(GetProgressBarClass())"
+                 role="progressbar"
+                 style="width: @usagePercent%"
+                 aria-valuenow="@licenseUsage.CurrentMembers"
+                 aria-valuemin="0"
+                 aria-valuemax="@licenseUsage.MemberCap">
+                @usagePercent%
+            </div>
+        </div>
+
+        @if (licenseUsage.IsAtCap)
+        {
+            <div class="alert alert-danger mt-2">
+                Member limit reached! Please upgrade your plan to add more members.
+            </div>
+            <button class="btn btn-primary" @onclick="OnUpgradeClicked">
+                Upgrade License
+            </button>
+        }
+        else if (licenseUsage.IsNearCap)
+        {
+            <div class="alert alert-warning mt-2">
+                Approaching member limit. Consider upgrading your plan.
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private LicenseUsageDto licenseUsage = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private int usagePercent => licenseUsage.MemberCap == 0 ? 0 : (int)((double)licenseUsage.CurrentMembers / licenseUsage.MemberCap * 100);
+
+    [Parameter]
+    public int ClubId { get; set; }
+
+    [Parameter]
+    public EventCallback<LicenseUsageDto> OnLicenseLoaded { get; set; }
+
+    [Parameter]
+    public EventCallback OnUpgrade { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLicenseUsage();
+    }
+
+    private string GetProgressBarClass()
+    {
+        if (licenseUsage.IsAtCap)
+            return "bg-danger";
+        else if (licenseUsage.IsNearCap)
+            return "bg-warning";
+        else
+            return "bg-success";
+    }
+
+    private async Task LoadLicenseUsage()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var usage = await ClubsService.GetLicenseUsageAsync(ClubId);
+
+            if (usage != null)
+            {
+                licenseUsage = usage;
+
+                if (OnLicenseLoaded.HasDelegate)
+                {
+                    await OnLicenseLoaded.InvokeAsync(licenseUsage);
+                }
+            }
+            else
+            {
+                errorMessage = "Failed to load license usage data.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading license usage: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnUpgradeClicked()
+    {
+        if (OnUpgrade.HasDelegate)
+        {
+            await OnUpgrade.InvokeAsync();
+        }
+    }
+}

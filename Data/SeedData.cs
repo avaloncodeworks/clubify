@@ -88,6 +88,21 @@ namespace Clubify.Data
                     await dbContext.SaveChangesAsync();
                 }
             }
+
+            // Seed LicenseTiers if none exist
+            if (!await dbContext.LicenseTiers.AnyAsync())
+            {
+                var tiers = new List<LicenseTier>
+                {
+                    new LicenseTier { Name = "Free", MemberCap = 5, MonthlyPrice = 0m, AnnualPrice = 0m, Notes = "Limited features" },
+                    new LicenseTier { Name = "Starter", MemberCap = 25, MonthlyPrice = 15m, AnnualPrice = 150m, Notes = "Essential features" },
+                    new LicenseTier { Name = "Pro", MemberCap = 100, MonthlyPrice = 35m, AnnualPrice = 350m, Notes = "Advanced features" },
+                    new LicenseTier { Name = "Enterprise", MemberCap = int.MaxValue, MonthlyPrice = 0m, AnnualPrice = 0m, Notes = "Custom Quote, unlimited members" }
+                };
+
+                dbContext.LicenseTiers.AddRange(tiers);
+                await dbContext.SaveChangesAsync();
+            }
         }
     }
 }

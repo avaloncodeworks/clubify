@@ -16,5 +16,8 @@ namespace Clubify.Data.Models
         public bool IsActive { get; set; } = true;
 
         public ICollection<Event> Events { get; set; }
+
+        public int LicenseTierId { get; set; }
+        public LicenseTier? LicenseTier { get; set; }
     }
 }

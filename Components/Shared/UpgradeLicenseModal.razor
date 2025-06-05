@@ -1,0 +1,103 @@
+﻿@using Clubify.Data.Models
+@using Clubify.Services
+@inject ILicenseService LicenseService
+@inject IClubsService ClubsService
+@inject NavigationManager NavigationManager
+
+<div class="modal-backdrop">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upgrade License Plan</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>You have reached your current member limit. Please select a plan to upgrade and unlock more members.</p>
+
+                @if (errorMessage != null)
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+                else if (licenseTiers == null)
+                {
+                    <div>Loading plans...</div>
+                }
+                else
+                {
+                    <ul class="list-group">
+                        @foreach (var tier in licenseTiers)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@tier.Name</strong> - @tier.MemberCap members
+                                    <div class="text-muted">@tier.Notes</div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span>@tier.MonthlyPrice.ToString("C") / month</span>
+                                    <button class="btn btn-primary btn-sm"
+                                            @onclick="() => SelectTier(tier)"
+                                            disabled="@IsCurrentTier(tier)">
+                                        Select
+                                    </button>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }                
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public int ClubId { get; set; }
+    [Parameter] public int CurrentTierId { get; set; }
+
+    private List<LicenseTierDto>? licenseTiers;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            licenseTiers = await LicenseService.GetLicenseTiersAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load license tiers: {ex.Message}";
+        }
+    }
+
+    private async Task SelectTier(LicenseTierDto tier)
+    {
+        try
+        {
+            if (tier.Id == CurrentTierId)
+            {
+                errorMessage = "You are already on this tier.";
+                return;
+            }
+
+            await ClubsService.UpgradeLicenseAsync(ClubId, tier.Id);
+            Close();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error upgrading license: {ex.Message}";
+        }
+    }
+
+    private bool IsCurrentTier(LicenseTierDto tier)
+    {
+        return tier.Id == CurrentTierId;
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}

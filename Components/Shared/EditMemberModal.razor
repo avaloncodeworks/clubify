@@ -1,0 +1,222 @@
+﻿@using Clubify.Data.Models
+@using Clubify.Services
+@inject IMembershipService MembershipsService
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop">
+        <div class="modal-dialog modal-xxl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Member</h5>
+                    <button type="button" class="btn-close" @onclick="Close"></button>
+                </div>
+                <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+                    @if (isLoading)
+                    {
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+                    else
+                    {
+                        <EditForm Model="member" OnValidSubmit="SaveMember">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="container-fluid px-0">
+                                <div class="row">
+                                    <!-- Column 1 -->
+                                    <div class="col-md-6">
+                                        <div class="section-box">
+                                            <h6 class="section-heading">Personal Info</h6>
+                                            <div class="mb-3">
+                                                <label>Email</label>
+                                                <InputText @bind-Value="member.Email" class="form-control" disabled />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>First Name</label>
+                                                <InputText @bind-Value="member.FirstName" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Last Name</label>
+                                                <InputText @bind-Value="member.LastName" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Date of Birth</label>
+                                                <InputDate @bind-Value="member.DateOfBirth" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Gender</label>
+                                                <InputText @bind-Value="member.Gender" class="form-control" />
+                                            </div>
+                                        </div>
+
+                                        <div class="section-box">
+                                            <h6 class="section-heading">Contact Info</h6>
+                                            <div class="mb-3">
+                                                <label>Contact Phone Number</label>
+                                                <InputText @bind-Value="member.ContactPhoneNumber" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Emergency Contact Name</label>
+                                                <InputText @bind-Value="member.EmergencyContactName" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Emergency Contact Phone</label>
+                                                <InputText @bind-Value="member.EmergencyContactPhone" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Column 2 -->
+                                    <div class="col-md-6">
+                                        <div class="section-box">
+                                            <h6 class="section-heading">Address Info</h6>
+                                            <div class="mb-3">
+                                                <label>Street</label>
+                                                <InputText @bind-Value="member.Street" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>City</label>
+                                                <InputText @bind-Value="member.City" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Postal Code</label>
+                                                <InputText @bind-Value="member.PostalCode" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Country</label>
+                                                <InputText @bind-Value="member.Country" class="form-control" />
+                                            </div>
+                                        </div>
+
+                                        <div class="section-box">
+                                            <h6 class="section-heading">Membership Info</h6>
+                                            <div class="mb-3">
+                                                <label>Membership Type</label>
+                                                <InputText @bind-Value="member.MembershipType" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Notes</label>
+                                                <InputTextArea @bind-Value="member.Notes" class="form-control" rows="3" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Expiry Date</label>
+                                                <InputDate @bind-Value="member.ExpiryDate" class="form-control" />
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <InputCheckbox @bind-Value="member.IsActive" class="form-check-input" id="isActive" />
+                                                <label class="form-check-label" for="isActive">Is Active</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                @(isSaving ? "Saving..." : "Save")
+                            </button>
+                        </EditForm>
+                    }
+
+                    @if (!string.IsNullOrEmpty(saveErrorMessage))
+                    {
+                        <div class="alert alert-danger mt-2">@saveErrorMessage</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int MembershipId { get; set; }
+    [Parameter] public EventCallback OnMemberUpdated { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private MembershipDto member = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? errorMessage;
+    private string? saveErrorMessage;
+
+    public bool IsVisible { get; set; } = false;  // Initially hidden until data loaded
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadMember();
+        if (member != null)
+        {
+            IsVisible = true;  // Show modal only after data has loaded
+        }
+    }
+
+    private async Task LoadMember()
+    {
+        isLoading = true;
+        errorMessage = null;
+        saveErrorMessage = null;
+
+        try
+        {
+            var result = await MembershipsService.GetMembershipAsync(MembershipId);
+            if (result != null)
+            {
+                member = result;
+            }
+            else
+            {
+                errorMessage = "Failed to load member details.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load member details: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveMember()
+    {
+        isSaving = true;
+        saveErrorMessage = null;
+
+        try
+        {
+            var result = await MembershipsService.UpdateMembershipAsync(MembershipId, member);
+            if (result)
+            {
+                await OnMemberUpdated.InvokeAsync();
+                await Close();
+            }
+            else
+            {
+                saveErrorMessage = "Failed to save member.";
+            }
+        }
+        catch (Exception ex)
+        {
+            saveErrorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task Close()
+    {
+        IsVisible = false;
+        await OnClose.InvokeAsync();
+    }
+}

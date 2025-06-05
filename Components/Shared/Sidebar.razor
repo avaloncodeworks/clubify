@@ -1,18 +1,15 @@
-﻿<div class="sidebar @(IsCollapsed ? "collapsed" : "")">
-  @*   <div class="sidebar-header">
-        @if (!IsCollapsed)
-        {
-            <img src="/images/clubify_logo_full_white.png" alt="Clubify Logo" class="sidebar-logo" />
-        }
-        else
-        {
-            <img src="/images/clubify_logo_big_C.png" alt="Clubify Logo Collapsed" class="sidebar-logo-collapsed" />
-        }
-    </div> *@
-
+﻿<div class="sidebar @(IsCollapsed && !IsOpenOnMobile ? "collapsed" : "") @(IsOpenOnMobile ? "open" : "")">
     <div class="sidebar-header">
         <img src="/images/clubify_logo_full_white.png" alt="Clubify Logo" class="sidebar-logo" />
         <img src="/images/clubify_logo_big_C.png" alt="Clubify Logo Collapsed" class="sidebar-logo-collapsed" />
+
+        <button class="sidebar-close mobile-only" @onclick="CloseSidebar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+        </button>
     </div>
 
     <div class="sidebar-content">
@@ -113,4 +110,20 @@
     [Parameter]
     public EventCallback<bool> IsCollapsedChanged { get; set; }
 
+    [Parameter]
+    public bool IsSidebarOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsSidebarOpenChanged { get; set; }
+
+    [Parameter]
+    public bool IsOpenOnMobile { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsOpenOnMobileChanged { get; set; }
+
+    private void CloseSidebar()
+    {
+        IsOpenOnMobileChanged.InvokeAsync(false);
+    }
 }

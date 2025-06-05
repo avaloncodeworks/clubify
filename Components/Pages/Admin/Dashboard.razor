@@ -1,10 +1,12 @@
 ﻿@page "/admin/dashboard"
 @attribute [Authorize(Roles = "Admin")]
 
+@using Clubify.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @inject ApplicationDbContext DbContext
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDashboardService DashboardService
 
 <PageTitle>Club Dashboard</PageTitle>
 
@@ -82,7 +84,7 @@ else
                             @foreach (var member in recentMemberships)
                             {
                                 <li class="list-group-item d-flex justify-content-between">
-                                    <span>@member.User?.Email ?? "N/A"</span>
+                                    <span>@member.Email</span>
                                     <span class="badge bg-info">@member.JoinedOn.ToString("dd MMM yyyy")</span>
                                 </li>
                             }
@@ -104,8 +106,8 @@ else
     private string clubName;
     private int totalEvents;
     private int totalMembers;
-    private List<Event> recentEvents = new();
-    private List<Membership> recentMemberships = new();
+    private List<EventDto> recentEvents = new();
+    private List<MembershipDto> recentMemberships = new();
     private string userName = "Admin";
 
     protected override async Task OnInitializedAsync()
@@ -115,8 +117,6 @@ else
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
-            userName = user.Identity?.Name ?? "Admin";
-
             var clubIdClaim = user.FindFirst("ClubId")?.Value;
 
             if (!int.TryParse(clubIdClaim, out var clubId))
@@ -125,35 +125,19 @@ else
                 return;
             }
 
-            var club = await DbContext.Clubs.FirstOrDefaultAsync(c => c.Id == clubId);
-            if (club == null)
+            var dashboardSummary = await DashboardService.GetDashboardSummaryAsync(clubId);
+            if (dashboardSummary != null)
             {
-                errorMessage = "Club not found. Please contact support.";
-                return;
+                clubName = dashboardSummary.ClubName;
+                totalEvents = dashboardSummary.TotalEvents;
+                totalMembers = dashboardSummary.TotalMembers;
+                recentEvents = dashboardSummary.RecentEvents;
+                recentMemberships = dashboardSummary.RecentMemberships;
             }
-
-            clubName = club.Name;
-
-            totalEvents = await DbContext.Events
-                .Where(e => e.ClubId == clubId)
-                .CountAsync();
-
-            totalMembers = await DbContext.Memberships
-                .Where(m => m.ClubId == clubId)
-                .CountAsync();
-
-            recentEvents = await DbContext.Events
-                .Where(e => e.ClubId == clubId)
-                .OrderByDescending(e => e.StartDate)
-                .Take(5)
-                .ToListAsync();
-
-            recentMemberships = await DbContext.Memberships
-                .Include(m => m.User)
-                .Where(m => m.ClubId == clubId)
-                .OrderByDescending(m => m.JoinedOn)
-                .Take(5)
-                .ToListAsync();
+            else
+            {
+                errorMessage = "No dashboard data received.";
+            }
         }
         catch (Exception ex)
         {

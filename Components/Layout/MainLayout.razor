@@ -6,13 +6,22 @@
 <CascadingAuthenticationState>
     @if (!NavigationManager.Uri.Contains("/account/login", StringComparison.OrdinalIgnoreCase))
     {
-        <Sidebar IsCollapsed="@isSidebarCollapsed" IsCollapsedChanged="@OnSidebarCollapsedChanged" />
+        <Sidebar IsCollapsed="@isSidebarCollapsed"
+                 IsCollapsedChanged="@OnSidebarCollapsedChanged"
+                 IsOpenOnMobile="@isMobileSidebarOpen"
+                 IsOpenOnMobileChanged="@OnMobileSidebarToggled" />
         <div class="main-area @(isSidebarCollapsed ? "sidebar-collapsed" : "")">
-            <TopNav OnToggleSidebar="ToggleSidebar" />
+            <TopNav OnToggleSidebar="ToggleSidebar"
+                    OnToggleMobileSidebar="ToggleMobileSidebar" />
             <div class="page-content">
                 @Body
             </div>
         </div>
+
+        @if (isSidebarOpen || isMobileSidebarOpen)
+        {
+            <div class="sidebar-overlay" @onclick="CloseMobileSidebar"></div>
+        }
     }
     else
     {
@@ -28,6 +37,18 @@
 
 @code {
     private bool isSidebarCollapsed = false;
+    private bool isSidebarOpen = false;
+    private bool isMobileSidebarOpen = false;
+    private bool isMobile = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("registerScreenSizeHandler", dotNetRef);
+        }
+    }
 
     private void OnSidebarCollapsedChanged(bool collapsed)
     {
@@ -36,6 +57,52 @@
 
     private void ToggleSidebar()
     {
-        isSidebarCollapsed = !isSidebarCollapsed;
+        if (isMobile)
+        {
+            isMobileSidebarOpen = !isMobileSidebarOpen;
+        }
+        else
+        {
+            isSidebarCollapsed = !isSidebarCollapsed;
+        }
+    }
+
+    private void OnSidebarOpenChanged(bool isOpen)
+    {
+        isSidebarOpen = isOpen;
+    }
+
+    private void CloseSidebar()
+    {
+        isSidebarOpen = false;
+    }
+
+    private void ToggleMobileSidebar()
+    {
+        isMobileSidebarOpen = !isMobileSidebarOpen;
+    }
+
+    private void CloseMobileSidebar()
+    {
+        isMobileSidebarOpen = false;
+    }
+
+    private void OnMobileSidebarToggled(bool isOpen)
+    {
+        isMobileSidebarOpen = isOpen;
+    }
+
+    [JSInvokable]
+    public void UpdateScreenSize(bool mobile)
+    {
+        isMobile = mobile;
+
+        if (!isMobile)
+        {
+            isMobileSidebarOpen = false;
+            isSidebarOpen = false;
+        }
+
+        StateHasChanged();
     }
 }

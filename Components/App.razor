@@ -55,6 +55,19 @@
                 DotNet.invokeMethodAsync('Clubify', 'CloseDropdownOnEscape');
             }
         });
+
+                window.registerScreenSizeHandler = (dotNetHelper) => {
+                const checkScreenSize = () => {
+                const isMobile = window.innerWidth <= 768;
+                dotNetHelper.invokeMethodAsync('UpdateScreenSize', isMobile);
+            };
+
+            // Run on initial load
+            checkScreenSize();
+
+            // Add listener for resize
+            window.addEventListener('resize', checkScreenSize);
+        };
     </script>
 
     <script src="_framework/blazor.web.js"></script>
