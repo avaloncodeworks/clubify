@@ -7,7 +7,16 @@ namespace Clubify.Services
 {
     public interface IMembershipService
     {
-        Task<List<MembershipDto>> GetMembershipsAsync(int clubId, string? search = null, string? status = null, string? firstName = null, string? lastName = null);
+        Task<(List<MembershipDto> Members, int TotalCount)> GetMembershipsAsync(
+            int clubId,
+            string? search = null,
+            string? status = null,
+            string? firstName = null,
+            string? lastName = null,
+            string? sortColumn = null,
+            string? sortDirection = "asc",
+            int pageNumber = 1,
+            int pageSize = 10);
         Task<MembershipDto?> GetMembershipAsync(int id);
         Task<bool> UpdateMembershipAsync(int id, MembershipDto updatedMember);
         Task<bool> DeleteMembershipAsync(int id);
@@ -26,7 +35,9 @@ namespace Clubify.Services
             _contextFactory = contextFactory;
         }
 
-        public async Task<List<MembershipDto>> GetMembershipsAsync(int clubId, string? search = null, string? status = null, string? firstName = null, string? lastName = null)
+        public async Task<(List<MembershipDto> Members, int TotalCount)> GetMembershipsAsync(int clubId, string? search = null, string? status = null, 
+            string? firstName = null, string? lastName = null, string? sortColumn = null, string? sortDirection = "asc", int pageNumber = 1,
+            int pageSize = 10)
         {
             await using var _context = _contextFactory.CreateDbContext();
 
@@ -66,8 +77,31 @@ namespace Clubify.Services
                 }
             }
 
-            return await query
-                .OrderByDescending(m => m.JoinedOn)
+            // Sorting
+            query = sortColumn?.ToLower() switch
+            {
+                "firstname" => (sortDirection == "desc")
+                    ? query.OrderByDescending(m => m.User.FirstName).ThenBy(m => m.Id)
+                    : query.OrderBy(m => m.User.FirstName).ThenBy(m => m.Id),
+                "lastname" => (sortDirection == "desc")
+                    ? query.OrderByDescending(m => m.User.LastName).ThenBy(m => m.Id)
+                    : query.OrderBy(m => m.User.LastName).ThenBy(m => m.Id),
+                "email" => (sortDirection == "desc")
+                    ? query.OrderByDescending(m => m.User.Email).ThenBy(m => m.Id)
+                    : query.OrderBy(m => m.User.Email).ThenBy(m => m.Id),
+                "joinedon" => (sortDirection == "desc")
+                    ? query.OrderByDescending(m => m.JoinedOn).ThenBy(m => m.Id)
+                    : query.OrderBy(m => m.JoinedOn).ThenBy(m => m.Id),
+                _ => query.OrderByDescending(m => m.JoinedOn).ThenBy(m => m.Id)
+            };
+
+            // Count before paging
+            var totalCount = await query.CountAsync();
+
+            // Paging
+            var members = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(m => new MembershipDto
                 {
                     Id = m.Id,
@@ -92,6 +126,8 @@ namespace Clubify.Services
                     IsActive = m.IsActive
                 })
                 .ToListAsync();
+
+            return (members, totalCount);
         }
 
         public async Task<MembershipDto?> GetMembershipAsync(int id)
