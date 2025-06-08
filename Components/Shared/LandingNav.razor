@@ -1,0 +1,77 @@
+﻿<nav class="landing-navbar">
+    <div class="navbar-container">
+
+        <!-- Left: Logo -->
+        <div class="navbar-left">
+            <a href="/" class="navbar-logo">
+                <img src="images/clubify_logo_full_black.png" alt="Clubify Logo" />
+            </a>
+        </div>
+
+        <!-- Center: Navigation Links -->
+        <div class="navbar-center">
+            <ul class="navbar-links">
+                <li><a href="#">Features</a></li>
+                <li><a href="#">Pricing</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </div>
+
+        <!-- Right: Log In / Create a Club -->
+        <div class="navbar-right">
+            <a href="/account/login" class="btn-link">Log in</a>
+        </div>
+
+        <div class="navbar-cta">
+            <a href="#" class="btn-primary">Create a club</a>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="navbar-toggle" @onclick="ToggleMenu" aria-label="Toggle navigation">
+            @if (!isMobileMenuOpen)
+            {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            }
+            else
+            {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            }
+        </button>
+
+    </div>
+
+</nav>
+
+<!-- Mobile Menu -->
+<div class="navbar-mobile-menu @(isMobileMenuOpen ? "open" : "")">
+    <ul class="navbar-mobile-links">
+        <li><a href="#">Features</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="/account/login" class="btn-link">Log in</a></li>
+    </ul>
+</div>
+
+<!-- Overlay -->
+@if (isMobileMenuOpen)
+{
+    <div class="navbar-overlay" @onclick="ToggleMenu"></div>
+}
+
+@code {
+    private bool isMobileMenuOpen = false;
+
+    private void ToggleMenu()
+    {
+        isMobileMenuOpen = !isMobileMenuOpen;
+    }
+}
